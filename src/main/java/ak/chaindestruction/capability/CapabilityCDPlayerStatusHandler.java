@@ -32,7 +32,7 @@ public class CapabilityCDPlayerStatusHandler {
             @Override
             public INBT writeNBT(Capability<ICDPlayerStatusHandler> capability, ICDPlayerStatusHandler instance, Direction side) {
                 CompoundNBT nbt = new CompoundNBT();
-                nbt.putByte(CDPlayerStatus.NBT_CLICK_FACE, (byte) instance.getFace().getIndex());
+                nbt.putByte(CDPlayerStatus.NBT_CLICK_FACE, (byte) instance.getFace().get3DDataValue());
                 nbt.putBoolean(CDPlayerStatus.NBT_STATUS_DIG_UNDER, instance.isDigUnder());
                 nbt.putBoolean(CDPlayerStatus.NBT_STATUS_TREE_MODE, instance.isTreeMode());
                 nbt.putBoolean(CDPlayerStatus.NBT_STATUS_PRIVATE_MODE, instance.isPrivateRegisterMode());

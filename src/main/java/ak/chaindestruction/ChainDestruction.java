@@ -70,7 +70,7 @@ public class ChainDestruction {
   @SuppressWarnings("unused")
   @SubscribeEvent
   public void joinInWorld(final EntityJoinWorldEvent event) {
-    if (!event.getWorld().isRemote && event.getEntity() instanceof PlayerEntity) {
+    if (!event.getWorld().isClientSide && event.getEntity() instanceof PlayerEntity) {
       PlayerEntity player = (PlayerEntity) event.getEntity();
       CDPlayerStatus.get(player).ifPresent(status -> {
         String mode = status.isPrivateRegisterMode() ? "Private Register" : "Normal";
@@ -78,7 +78,7 @@ public class ChainDestruction {
             .format("ChainDestruction Info Mode:%s, TreeMode:%b, Range:%d", mode,
                 status.isTreeMode(),
                 status.getMaxDestroyedBlock());
-        player.sendMessage(new StringTextComponent(s), Util.DUMMY_UUID);
+        player.sendMessage(new StringTextComponent(s), Util.NIL_UUID);
       });
     }
   }

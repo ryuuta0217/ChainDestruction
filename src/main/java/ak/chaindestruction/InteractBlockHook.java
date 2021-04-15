@@ -72,23 +72,21 @@ public class InteractBlockHook {
 //        }
     boolean startBreakingBlock = itemStack.getItem().onBlockStartBreak(itemStack, blockPos, player);
     boolean blockDestroyed = itemStack.getItem()
-        .onBlockDestroyed(itemStack, world, state, blockPos, player);
+        .mineBlock(itemStack, world, state, blockPos, player);
     if (!startBreakingBlock && blockDestroyed) {
       if (world.removeBlock(blockPos, false)) {
-        state.getBlock().onBlockHarvested(world, blockPos, state, player);
-        state.getBlock().onPlayerDestroy(world, blockPos, state);
-        state.getBlock()
-            .harvestBlock(world, player, new BlockPos(player.getPositionVec().x, player.getPositionVec().y, player.getPositionVec().z), state,
+        state.getBlock().playerWillDestroy(world, blockPos, state, player);
+        state.getBlock().destroy(world, blockPos, state);
+        state.getBlock().playerDestroy(world, player, new BlockPos(player.position().x, player.position().y, player.position().z), state,
                 null, itemStack);
         if (ConfigUtils.COMMON.destroyingSequentially) {
           dropItemNearPlayer(world, player, blockPos);
         }
-        if (EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, itemStack) == 0) {
+        if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, itemStack) == 0) {
           int exp = state.getBlock().getExpDrop(state, world, blockPos,
-              EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, itemStack),
-                  EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, itemStack));
-          state.getBlock()
-              .dropXpOnBlockBreak(world, new BlockPos(player.getPositionVec().x, player.getPositionVec().y, player.getPositionVec().z), exp);
+              EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, itemStack),
+                  EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, itemStack));
+          state.getBlock().popExperience(world, new BlockPos(player.position().x, player.position().y, player.position().z), exp);
         }
         if (itemStack.getCount() == 0) {
           destroyItem(player, itemStack, isMultiToolHolder, toolData, slotNum);
@@ -110,18 +108,18 @@ public class InteractBlockHook {
   private static void dropItemNearPlayer(@Nonnull World world, @Nonnull PlayerEntity player,
       @Nonnull BlockPos blockPos) {
     List<ItemEntity> entityItemList = world
-        .getEntitiesWithinAABB(ItemEntity.class, new AxisAlignedBB(
+        .getEntitiesOfClass(ItemEntity.class, new AxisAlignedBB(
             blockPos.getX(), blockPos.getY(), blockPos.getZ(),
             blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1)
-            .grow(1, 1, 1));
+            .inflate(1, 1, 1));
     double d0, d1, d2;
-    float f1 = player.rotationYaw * (float) (2 * Math.PI / 360);
+    float f1 = player.yRot * (float) (2 * Math.PI / 360);
     for (ItemEntity eItem : entityItemList) {
-      eItem.setNoPickupDelay();
-      d0 = player.getPositionVec().x - MathHelper.sin(f1) * 0.5D;
-      d1 = player.getPositionVec().y + 0.5D;
-      d2 = player.getPositionVec().z + MathHelper.cos(f1) * 0.5D;
-      eItem.setPosition(d0, d1, d2);
+      eItem.setNoPickUpDelay();
+      d0 = player.position().x - MathHelper.sin(f1) * 0.5D;
+      d1 = player.position().y + 0.5D;
+      d2 = player.position().z + MathHelper.cos(f1) * 0.5D;
+      eItem.setPos(d0, d1, d2);
     }
   }
 
@@ -137,12 +135,12 @@ public class InteractBlockHook {
   private static void destroyItem(@Nonnull PlayerEntity player, @Nonnull ItemStack item,
       boolean isInMultiTool, IInventory tools, int slotNum) {
     if (isInMultiTool) {
-      tools.setInventorySlotContents(slotNum, ItemStack.EMPTY);
+      tools.setItem(slotNum, ItemStack.EMPTY);
       MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, item, Hand.MAIN_HAND));
     } else {
       net.minecraftforge.event.ForgeEventFactory
           .onPlayerDestroyItem(player, item, Hand.MAIN_HAND);
-      player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
+      player.setItemInHand(Hand.MAIN_HAND, ItemStack.EMPTY);
     }
   }
 
@@ -153,7 +151,7 @@ public class InteractBlockHook {
    * @return 壊れない設定でかつ耐久が1以下の場合true
    */
   private static boolean isItemBreakingSoon(@Nonnull ItemStack itemStack) {
-    return ConfigUtils.COMMON.notToDestroyItem && (itemStack.getMaxDamage() - itemStack.getDamage()
+    return ConfigUtils.COMMON.notToDestroyItem && (itemStack.getMaxDamage() - itemStack.getDamageValue()
         <= 1);
   }
 
@@ -173,34 +171,34 @@ public class InteractBlockHook {
       if (key == Constants.RegKEY && !item.isEmpty()) {
         Set<String> enableItems = status.getEnableItems();
         String uniqueName = StringUtils.getUniqueString(item.getItem().getRegistryName());
-        if (player.isSneaking() && enableItems.contains(uniqueName)) {
+        if (player.isShiftKeyDown() && enableItems.contains(uniqueName)) {
           enableItems.remove(uniqueName);
           chat = String.format("Remove Tool : %s", uniqueName);
-          player.sendMessage(new StringTextComponent(chat), Util.DUMMY_UUID);
+          player.sendMessage(new StringTextComponent(chat), Util.NIL_UUID);
         }
-        if (!player.isSneaking() && !enableItems.contains(uniqueName)) {
+        if (!player.isShiftKeyDown() && !enableItems.contains(uniqueName)) {
           enableItems.add(uniqueName);
           chat = String.format("Add Tool : %s", uniqueName);
-          player.sendMessage(new StringTextComponent(chat), Util.DUMMY_UUID);
+          player.sendMessage(new StringTextComponent(chat), Util.NIL_UUID);
         }
       }
       if (key == Constants.DigKEY) {
         status.setDigUnder(!status.isDigUnder());
         chat = String.format("Dig Under %b", status.isDigUnder());
-        player.sendMessage(new StringTextComponent(chat), Util.DUMMY_UUID);
+        player.sendMessage(new StringTextComponent(chat), Util.NIL_UUID);
       }
       if (key == Constants.ModeKEY) {
-        if (player.isSneaking()) {
+        if (player.isShiftKeyDown()) {
           status.setPrivateRegisterMode(!status.isPrivateRegisterMode());
           chat = String.format("Private Register Mode %b", status.isPrivateRegisterMode());
         } else {
           status.setTreeMode(!status.isTreeMode());
           chat = String.format("Tree Mode %b", status.isTreeMode());
         }
-        player.sendMessage(new StringTextComponent(chat), Util.DUMMY_UUID);
+        player.sendMessage(new StringTextComponent(chat), Util.NIL_UUID);
       }
       PacketHandler.INSTANCE.sendTo(new MessageCDStatusProperties(player),
-          ((ServerPlayerEntity) player).connection.getNetworkManager(),
+          ((ServerPlayerEntity) player).connection.getConnection(),
           NetworkDirection.PLAY_TO_CLIENT);
     });
   }
@@ -224,13 +222,13 @@ public class InteractBlockHook {
         String chat;
         if (mouse == Constants.MIDDLE_CLICK && !isFocusObject) {
           int maxDestroyedBlock = status.getMaxDestroyedBlock();
-          if (player.isSneaking() && maxDestroyedBlock > 0) {
+          if (player.isShiftKeyDown() && maxDestroyedBlock > 0) {
             status.setMaxDestroyedBlock(--maxDestroyedBlock);
           } else {
             status.setMaxDestroyedBlock(++maxDestroyedBlock);
           }
           chat = String.format("New Max Destroyed : %d", maxDestroyedBlock);
-          player.sendMessage(new StringTextComponent(chat), Util.DUMMY_UUID);
+          player.sendMessage(new StringTextComponent(chat), Util.NIL_UUID);
         }
       });
     } catch (Exception e) {
@@ -248,9 +246,9 @@ public class InteractBlockHook {
   public void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
     PlayerEntity player = event.getPlayer();
     CDPlayerStatus.get(player).ifPresent(status -> {
-      World world = player.getEntityWorld();
-      ItemStack itemStack = player.getHeldItemMainhand();
-      if (world.isRemote || itemStack.isEmpty()) {
+      World world = player.getCommandSenderWorld();
+      ItemStack itemStack = player.getMainHandItem();
+      if (world.isClientSide || itemStack.isEmpty()) {
         return;
       }
       String uniqueName = StringUtils.getUniqueString(itemStack.getItem().getRegistryName());
@@ -278,9 +276,9 @@ public class InteractBlockHook {
     PlayerEntity player = event.getPlayer();
     CDPlayerStatus.get(player).ifPresent(status -> {
       Set<String> enableItems = status.getEnableItems();
-      World world = player.getEntityWorld();
-      ItemStack itemStack = player.getHeldItemMainhand();
-      if (world.isRemote || itemStack.isEmpty()) {
+      World world = player.getCommandSenderWorld();
+      ItemStack itemStack = player.getMainHandItem();
+      if (world.isClientSide || itemStack.isEmpty()) {
         return;
       }
       String uniqueName = StringUtils.getUniqueString(itemStack.getItem().getRegistryName());
@@ -340,12 +338,12 @@ public class InteractBlockHook {
     //鉱石辞書名かMeta値付き固有文字列のリスト
     List<String> oreNames = StringUtils.makeStringDataFromBlockState(state);
     String chat;
-    if (player.isSneaking()) {
+    if (player.isShiftKeyDown()) {
       //鉱石辞書名かBlockState付き固有文字列があって、登録されて無ければ、そちらを登録。
       if (!StringUtils.matchOreNames(set, oreNames)) {
         set.addAll(oreNames);
         chat = String.format("Add Block : %s", oreNames.toString());
-        player.sendMessage(new StringTextComponent(chat), Util.DUMMY_UUID);
+        player.sendMessage(new StringTextComponent(chat), Util.NIL_UUID);
       }
       if (!oreNames.contains(uidStr)) {
         set.remove(uidStr);
@@ -354,7 +352,7 @@ public class InteractBlockHook {
       //文字列がマッチした場合のみ、チャット出力。
       if (StringUtils.match(set, state)) {
         chat = String.format("Remove Block and its OreDictionary Names: %s", uidMetaStr);
-        player.sendMessage(new StringTextComponent(chat), Util.DUMMY_UUID);
+        player.sendMessage(new StringTextComponent(chat), Util.NIL_UUID);
       }
       set.remove(uidStr);
       set.removeAll(oreNames);
@@ -383,9 +381,9 @@ public class InteractBlockHook {
   @SuppressWarnings("unused")
   @SubscribeEvent
   public void blockBreakingEvent(BlockEvent.BreakEvent event) {
-     if (!(event.getPlayer() instanceof FakePlayer) && !event.getWorld().isRemote()) {
+     if (!(event.getPlayer() instanceof FakePlayer) && !event.getWorld().isClientSide()) {
       if (isChainDestructionActionable(event.getPlayer(), event.getState(),
-          event.getPlayer().getHeldItemMainhand())) {
+          event.getPlayer().getMainHandItem())) {
         setup(event.getState(), event.getPlayer(), (ServerWorld) event.getWorld(), event.getPos());
       }
     }
@@ -435,10 +433,10 @@ public class InteractBlockHook {
       LinkedHashSet<BlockPos> connectedBlockSet = getConnectedBlockSet(status, blockPos,
           searchedBlockSet);
       if (!ConfigUtils.COMMON.destroyingSequentially) {
-        destroyBlock(world, player, player.getHeldItemMainhand(), connectedBlockSet);
+        destroyBlock(world, player, player.getMainHandItem(), connectedBlockSet);
       } else {
         ChainDestruction.digTaskEvent.digTaskSet
-            .add(new DigTask(player, player.getHeldItemMainhand(), connectedBlockSet));
+            .add(new DigTask(player, player.getMainHandItem(), connectedBlockSet));
       }
     });
   }
@@ -457,9 +455,9 @@ public class InteractBlockHook {
       @Nonnull PlayerEntity player, @Nonnull BlockState target, @Nonnull BlockPos targetPos) {
     BlockPos minPos = status.getMinPos(player, targetPos);
     BlockPos maxPos = status.getMaxPos(targetPos);
-    return BlockPos.getAllInBox(minPos, maxPos)
+    return BlockPos.betweenClosedStream(minPos, maxPos)
         .filter(blockPos -> checkBlock(status, target, world.getBlockState(blockPos),
-            player.getHeldItemMainhand()))
+            player.getMainHandItem()))
             .map(BlockPos::new)
         .collect(Collectors.toSet());
   }
@@ -485,7 +483,7 @@ public class InteractBlockHook {
       while (iterator.hasNext()) {
         BlockPos blockPos = iterator.next();
         for (BlockPos listedBlockPos : connectedBlockSet) {
-          if (listedBlockPos.manhattanDistance(blockPos) <= distance) {
+          if (listedBlockPos.distManhattan(blockPos) <= distance) {
             connectedBlockSet.add(blockPos);
             iterator.remove();
             check = true;

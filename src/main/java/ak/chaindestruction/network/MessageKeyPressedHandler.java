@@ -17,8 +17,8 @@ public class MessageKeyPressedHandler implements BiConsumer<MessageKeyPressed, S
     @Override
     public void accept(MessageKeyPressed messageKeyPressed, Supplier<Context> contextSupplier) {
         PlayerEntity player = contextSupplier.get().getSender();
-        if (Objects.nonNull(player) && !player.getHeldItemMainhand().isEmpty()) {
-            ChainDestruction.interactblockhook.doKeyEvent(player.getHeldItemMainhand(), player, messageKeyPressed.getKey());
+        if (Objects.nonNull(player) && !player.getMainHandItem().isEmpty()) {
+            ChainDestruction.interactblockhook.doKeyEvent(player.getMainHandItem(), player, messageKeyPressed.getKey());
         }
     }
 }

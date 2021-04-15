@@ -21,7 +21,7 @@ public class CommandCopyRtoLCDStatus {
 
   public static void register(CommandDispatcher<CommandSource> commandDispatcher) {
     commandDispatcher.register(
-        Commands.literal(COMMAND_COPY_R_TO_L).requires(e -> e.hasPermissionLevel(2))
+        Commands.literal(COMMAND_COPY_R_TO_L).requires(e -> e.hasPermission(2))
             .executes(e -> execute(e.getSource(), null))
             .then(Commands.argument("target", EntityArgument.player())
                 .executes(e -> execute(e.getSource(), EntityArgument.getPlayer(e, "target")))
@@ -31,7 +31,7 @@ public class CommandCopyRtoLCDStatus {
   private static int execute(CommandSource commandSource, @Nullable PlayerEntity PlayerEntity) {
     if (Objects.isNull(PlayerEntity)) {
       try {
-        PlayerEntity = commandSource.asPlayer();
+        PlayerEntity = commandSource.getPlayerOrException();
       } catch (CommandSyntaxException e) {
         e.printStackTrace();
         return 1;
@@ -39,8 +39,8 @@ public class CommandCopyRtoLCDStatus {
     }
     //noinspection ConstantConditions
     if (Objects.nonNull(PlayerEntity)) {
-      ItemStack itemMainHand = PlayerEntity.getHeldItemMainhand();
-      ItemStack itemOffHand = PlayerEntity.getHeldItemOffhand();
+      ItemStack itemMainHand = PlayerEntity.getMainHandItem();
+      ItemStack itemOffHand = PlayerEntity.getOffhandItem();
       CDItemStackStatus.get(itemMainHand)
           .ifPresent((copyFrom) ->
               CDItemStackStatus.get(itemOffHand).ifPresent(

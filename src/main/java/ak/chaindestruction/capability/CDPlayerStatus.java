@@ -161,7 +161,7 @@ public class CDPlayerStatus implements ICDPlayerStatusHandler,
   @Override
   public CompoundNBT serializeNBT() {
     CompoundNBT nbt = new CompoundNBT();
-    nbt.putByte(NBT_CLICK_FACE, (byte) face.getIndex());
+    nbt.putByte(NBT_CLICK_FACE, (byte) face.get3DDataValue());
     nbt.putBoolean(NBT_STATUS_DIG_UNDER, digUnder);
     nbt.putBoolean(NBT_STATUS_TREE_MODE, treeMode);
     nbt.putBoolean(NBT_STATUS_PRIVATE_MODE, privateRegisterMode);
@@ -292,9 +292,9 @@ public class CDPlayerStatus implements ICDPlayerStatusHandler,
     if (isDigUnder()) {
       y = Math.max(ak.akapi.Constants.MIN_Y, targetPos.getY() - maxDestroyedBlock);
     } else if (Direction.UP != getFace()) {
-      y = Math.max(ak.akapi.Constants.MIN_Y, MathHelper.floor(entity.getPositionVec().y));
+      y = Math.max(ak.akapi.Constants.MIN_Y, MathHelper.floor(entity.position().y));
     } else if (maxDestroyedBlock > 0) {
-      y = Math.max(ak.akapi.Constants.MIN_Y, MathHelper.floor(entity.getPositionVec().y) - 1);
+      y = Math.max(ak.akapi.Constants.MIN_Y, MathHelper.floor(entity.position().y) - 1);
     }
     return new BlockPos(
         targetPos.getX() - maxDestroyedBlock,

@@ -24,18 +24,18 @@ public class ClientEvent {
 
     private byte getKeyIndex() {
         byte key = -1;
-        if (ClientProxy.REGISTER_ITEM_KEY.isPressed()) {
+        if (ClientProxy.REGISTER_ITEM_KEY.consumeClick()) {
             key = Constants.RegKEY;
-        } else if (ClientProxy.DIG_UNDER_KEY.isPressed()) {
+        } else if (ClientProxy.DIG_UNDER_KEY.consumeClick()) {
             key = Constants.DigKEY;
-        } else if (ClientProxy.TREE_KEY.isPressed()) {
+        } else if (ClientProxy.TREE_KEY.consumeClick()) {
             key = Constants.ModeKEY;
         }
         return key;
     }
 
     private void keyPressEvent() {
-        if (mc.isGameFocused() && Objects.nonNull(mc.player)) {
+        if (mc.isWindowActive() && Objects.nonNull(mc.player)) {
             byte keyIndex = getKeyIndex();
             if (keyIndex != -1) {
 //                PlayerEntity player = mc.player;
@@ -50,7 +50,7 @@ public class ClientEvent {
 //        if (mc.gameSettings.keyBindUseItem.getIsKeyPressed()) {
 //            mouse = 1;
 //        }
-        if (mc.gameSettings.keyBindPickBlock.isKeyDown()) {
+        if (mc.options.keyPickItem.isDown()) {
             mouse = Constants.MIDDLE_CLICK;
         }
 //        if (mouse != -1 && Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
@@ -60,7 +60,7 @@ public class ClientEvent {
     }
 
     private void mouseClickEvent() {
-        if (mc.isGameFocused()) {
+        if (mc.isWindowActive()) {
             if (mouseCounter > 0) {
                 mouseCounter--;
             }
@@ -68,7 +68,7 @@ public class ClientEvent {
             if (mouseIndex == Constants.MIDDLE_CLICK) {
                 if (mouseCounter == 0) {
                     mouseCounter = 5;
-                    boolean isFocusObject = (Objects.nonNull(mc.objectMouseOver) && mc.objectMouseOver.getType() != Type.MISS) || Objects.nonNull(mc.pointedEntity);
+                    boolean isFocusObject = (Objects.nonNull(mc.hitResult) && mc.hitResult.getType() != Type.MISS) || Objects.nonNull(mc.crosshairPickEntity);
                     PacketHandler.INSTANCE.sendToServer(new MessageMousePressed(mouseIndex, isFocusObject));
                 }
             }

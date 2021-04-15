@@ -24,7 +24,7 @@ public class CommandShowPlayerCDStatus {
 
   public static void register(CommandDispatcher<CommandSource> commandDispatcher) {
     commandDispatcher.register(
-        Commands.literal(COMMAND_SHOW_PLAYER_CD_STATUS).requires(e -> e.hasPermissionLevel(2))
+        Commands.literal(COMMAND_SHOW_PLAYER_CD_STATUS).requires(e -> e.hasPermission(2))
             .executes(e -> execute(e.getSource(), null))
             .then(Commands.argument("target", EntityArgument.player())
                 .executes(e -> execute(e.getSource(), EntityArgument.getPlayer(e, "target")))
@@ -34,7 +34,7 @@ public class CommandShowPlayerCDStatus {
   private static int execute(CommandSource commandSource, @Nullable PlayerEntity playerEntity) {
     if (Objects.isNull(playerEntity)) {
       try {
-        playerEntity = commandSource.asPlayer();
+        playerEntity = commandSource.getPlayerOrException();
       } catch (CommandSyntaxException e) {
         e.printStackTrace();
         return 1;
@@ -44,7 +44,7 @@ public class CommandShowPlayerCDStatus {
     if (Objects.nonNull(playerEntity)) {
       StringBuilder sb = new StringBuilder();
       CDPlayerStatus.get(playerEntity).ifPresent(status -> sb.append(CapabilityCDPlayerStatusHandler.makePlayerStatusToString(status)));
-      playerEntity.sendMessage(new StringTextComponent(sb.toString()), Util.DUMMY_UUID);
+      playerEntity.sendMessage(new StringTextComponent(sb.toString()), Util.NIL_UUID);
     } else {
       return 1;
     }

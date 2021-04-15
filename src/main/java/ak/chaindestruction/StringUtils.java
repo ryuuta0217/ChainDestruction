@@ -45,7 +45,7 @@ public class StringUtils {
     if (itemStack.getItem() == Items.AIR) {
       return Collections.singletonList(makeString(state));
     }
-    Collection<ResourceLocation> owningTags = BlockTags.getCollection().getOwningTags(block);
+    Collection<ResourceLocation> owningTags = BlockTags.getAllTags().getMatchingTags(block);
     if (!owningTags.isEmpty()) {
       return owningTags.stream().map(ResourceLocation::toString).collect(Collectors.toList());
     } else {

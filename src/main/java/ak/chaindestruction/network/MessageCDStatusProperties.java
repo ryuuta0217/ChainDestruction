@@ -16,9 +16,9 @@ import net.minecraft.network.PacketBuffer;
 public class MessageCDStatusProperties {
 
   public static BiConsumer<MessageCDStatusProperties, PacketBuffer> encoder = (messageCDStatusProperties, packetBuffer) -> packetBuffer
-      .writeCompoundTag(messageCDStatusProperties.getData());
+      .writeNbt(messageCDStatusProperties.getData());
   public static Function<PacketBuffer, MessageCDStatusProperties> decoder = packetBuffer -> new MessageCDStatusProperties(
-      packetBuffer.readCompoundTag());
+      packetBuffer.readNbt());
 
   private CompoundNBT data;
 

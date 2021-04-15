@@ -19,9 +19,9 @@ public class MessageDigSoundHandler implements BiConsumer<MessageDigSound, Suppl
     public void accept(MessageDigSound messageDigSound, Supplier<Context> contextSupplier) {
         PlayerEntity player = Minecraft.getInstance().player;
         if (Objects.nonNull(player)) {
-            World world = player.getEntityWorld();
+            World world = player.getCommandSenderWorld();
             BlockPos blockPos = messageDigSound.getBlockPos();
-            world.playBroadcastSound(2001, blockPos, Block.getStateId(world.getBlockState(blockPos)));
+            world.globalLevelEvent(2001, blockPos, Block.getId(world.getBlockState(blockPos)));
         }
     }
 }

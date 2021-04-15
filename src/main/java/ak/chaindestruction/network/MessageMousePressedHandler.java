@@ -18,8 +18,8 @@ public class MessageMousePressedHandler implements
   @Override
   public void accept(MessageMousePressed messageMousePressed, Supplier<Context> contextSupplier) {
     PlayerEntity player = contextSupplier.get().getSender();
-    if (Objects.nonNull(player) && !player.getHeldItemMainhand().isEmpty()) {
-      ItemStack equippedItem = player.getHeldItemMainhand();
+    if (Objects.nonNull(player) && !player.getMainHandItem().isEmpty()) {
+      ItemStack equippedItem = player.getMainHandItem();
       ChainDestruction.interactblockhook
           .doMouseEvent(equippedItem, player, messageMousePressed.getMouseIndex(),
               messageMousePressed.isFocusObject());

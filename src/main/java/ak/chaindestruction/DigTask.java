@@ -44,13 +44,13 @@ public class DigTask {
     }
     BlockPos first = blockToDestroySet.iterator().next();
     blockToDestroySet.remove(first);
-    if (!(this.digger.getEntityWorld() instanceof ServerWorld)) {
+    if (!(this.digger.getCommandSenderWorld() instanceof ServerWorld)) {
       return true;
     }
-    ServerWorld world = (ServerWorld) this.digger.getEntityWorld();
-    world.playBroadcastSound(2001, first, Block.getStateId(world.getBlockState(first)));
+    ServerWorld world = (ServerWorld) this.digger.getCommandSenderWorld();
+    world.globalLevelEvent(2001, first, Block.getId(world.getBlockState(first)));
     PacketHandler.INSTANCE.sendTo(new MessageDigSound(first),
-        ((ServerPlayerEntity) digger).connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
+        ((ServerPlayerEntity) digger).connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
     return InteractBlockHook.destroyBlockAtPosition(world, digger, first, heldItem);
   }
 
