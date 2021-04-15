@@ -13,10 +13,14 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import org.lwjgl.glfw.GLFW;
 
 public class ClientProxy extends CommonProxy {
+    public static ClientProxy INSTANCE;
     public static final KeyBinding REGISTER_ITEM_KEY = new KeyBinding(KEY_REGISTER_ITEM, GLFW.GLFW_KEY_K, KEY_CATEGORY);
     public static final KeyBinding DIG_UNDER_KEY = new KeyBinding(KEY_DIG_UNDER, GLFW.GLFW_KEY_U, KEY_CATEGORY);
     public static final KeyBinding TREE_KEY = new KeyBinding(KEY_TREE_MODE, GLFW.GLFW_KEY_SEMICOLON, KEY_CATEGORY);
 
+    public ClientProxy() {
+        INSTANCE = this;
+    }
 
     @Override
     public void registerClientInfo() {

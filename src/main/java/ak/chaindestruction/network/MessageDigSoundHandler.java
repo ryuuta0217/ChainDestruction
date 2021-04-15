@@ -1,7 +1,7 @@
 package ak.chaindestruction.network;
 
+import ak.chaindestruction.ClientProxy;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -17,8 +17,10 @@ import java.util.function.Supplier;
  */
 public class MessageDigSoundHandler implements BiConsumer<MessageDigSound, Supplier<Context>> {
     public void accept(MessageDigSound messageDigSound, Supplier<Context> contextSupplier) {
-        PlayerEntity player = Minecraft.getInstance().player;
-        if (Objects.nonNull(player)) {
+        if(ClientProxy.INSTANCE == null) return;
+
+        PlayerEntity player = ClientProxy.INSTANCE.getPlayerEntity();
+        if(Objects.nonNull(player)) {
             World world = player.getCommandSenderWorld();
             BlockPos blockPos = messageDigSound.getBlockPos();
             world.globalLevelEvent(2001, blockPos, Block.getId(world.getBlockState(blockPos)));
